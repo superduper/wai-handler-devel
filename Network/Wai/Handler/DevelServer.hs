@@ -206,6 +206,7 @@ type Handler = (Application -> IO ()) -> IO ()
 theapp :: String -> String -> IO (Either InterpreterError (Handler, [FilePath]))
 theapp modu func =
     runInterpreter $ do
+        setGhcOption "-idir src"
         set [ installedModulesInScope HInt.:= False ]
         loadModules [modu]
         mods <- getLoadedModules
