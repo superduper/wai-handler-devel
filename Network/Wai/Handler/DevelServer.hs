@@ -17,7 +17,7 @@ import Network.HTTP.Types (status200)
 import Data.Text.Lazy (pack)
 import Data.Text.Lazy.Encoding (encodeUtf8)
 import qualified Data.ByteString.Lazy.Char8 as L8
-import Control.Exception (Exception, SomeException, toException, fromException, finally, mask)
+import Control.Exception (SomeException, toException, fromException, finally, mask)
 import qualified Control.Exception as E
 import Control.Concurrent (ThreadId, myThreadId, threadDelay, killThread)
 import qualified Control.Concurrent as Concurrent
@@ -183,13 +183,14 @@ loadingApp' err = swapApp (loadingApp err)
 
 loadingApp :: Maybe SomeException -> Handler
 loadingApp err f =
-    f $ const $ return $ responseLBS status200
+    f $  respondApp $ responseLBS status200
         ( ("Content-Type", "text/plain")
         : case err of
             Nothing -> [("Refresh", "1")]
             Just _ -> []
         ) $ toMessage err
   where
+    respondApp res _ respond = respond res 
     toMessage Nothing = "Loading code changes, please wait"
     toMessage (Just err') = charsToLBS $ "Error loading code: " ++
         (case fromException err' of
