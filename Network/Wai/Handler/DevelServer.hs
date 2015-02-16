@@ -11,6 +11,7 @@ module Network.Wai.Handler.DevelServer
     ) where
 
 import Language.Haskell.Interpreter hiding (typeOf)
+import Language.Haskell.Interpreter as HInt
 import Network.Wai
 import Network.HTTP.Types (status200)
 
@@ -79,7 +80,7 @@ runQuitWithReloadActions port modu func extras actions = do
                 go sig
             _ -> go sig
 
-runWithReloadActions :: Int -> ModuleName -> FunctionName -> (FilePath -> IO [FilePath]) 
+runWithReloadActions :: Int -> ModuleName -> FunctionName -> (FilePath -> IO [FilePath])
                      -> Maybe (MVar ()) -> [IO (IO ())] -> IO ()
 runWithReloadActions port modu func extras msig initActions = do
     actions <- mapM id initActions
@@ -190,7 +191,7 @@ loadingApp err f =
             Just _ -> []
         ) $ toMessage err
   where
-    respondApp res _ respond = respond res 
+    respondApp res _ respond = respond res
     toMessage Nothing = "Loading code changes, please wait"
     toMessage (Just err') = charsToLBS $ "Error loading code: " ++
         (case fromException err' of
@@ -205,6 +206,7 @@ type Handler = (Application -> IO ()) -> IO ()
 theapp :: String -> String -> IO (Either InterpreterError (Handler, [FilePath]))
 theapp modu func =
     runInterpreter $ do
+        set [ installedModulesInScope HInt.:= False ]
         loadModules [modu]
         mods <- getLoadedModules
         setImports ["Prelude", "Network.Wai", "Data.ByteString.Internal", "Control.Monad.Trans.Resource", modu]
