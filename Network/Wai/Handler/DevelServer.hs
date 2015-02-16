@@ -12,6 +12,7 @@ module Network.Wai.Handler.DevelServer
 
 import Language.Haskell.Interpreter hiding (typeOf)
 import Language.Haskell.Interpreter as HInt
+import Language.Haskell.Interpreter.Unsafe
 import Network.Wai
 import Network.HTTP.Types (status200)
 
@@ -206,7 +207,7 @@ type Handler = (Application -> IO ()) -> IO ()
 theapp :: String -> String -> IO (Either InterpreterError (Handler, [FilePath]))
 theapp modu func =
     runInterpreter $ do
-        setGhcOption "-idir src"
+        unsafeSetGhcOption "-idir src"
         set [ installedModulesInScope HInt.:= False ]
         loadModules [modu]
         mods <- getLoadedModules
